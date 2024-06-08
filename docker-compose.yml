@@ -1,0 +1,119 @@
+#version: '3.2'  #version선언안하면 docker compose가 알아서 판단한다는데....
+
+services:
+  # elasticsearch 설정 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  elasticsearch:
+    container_name: elasticsearch
+    
+    #등록된 이미지를 지정하여 빌드시
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELK_VERSION?7.6.2}    #환경파일에서 ELK_VERSION 값이 없으면 디폴트로 7.6.2
+    #Docker파일을 통해 빌드시
+    #build:
+    #  context: elasticsearch/   #현재경로(docker-compose.yml이 있는경로)에서 elasticsearch/ 디렉토리아래의 Docker파일을 읽라는뜻
+    #  args:
+    #    ELK_VERSION: $ELK_VERSION
+
+    ports:
+      - 9200:9200
+      - 9300:9300
+      
+    #volumes:   #일반적인 표기법
+    #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    #  - esdata:/usr/share/elasticsearch/data
+    volumes:  #상세한 표기법(설정은 위와 같이 해도 된다.)
+      - type: bind  #외부 호스트의 파일과 마운트 
+        source: ./elasticsearch/config/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        read_only: true
+      - type: volume    #docker의 볼륨
+        source: esdata  
+        target: /usr/share/elasticsearch/data	
+
+    # Elastic search 계정정보
+    environment: 
+      #ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      discovery.type: single-node
+      #xpack.security.enabled: true  #elasticsearch.yml에 이미설정해 놓았기 때문에 주석처리
+      #xpack.security.transport.ssl.enabled: true  #elasticsearch.yml에 이미 설정해 놓았기 때문에 주석처리
+      ELASTIC_USERNAME: "elastic"
+      ELASTIC_PASSWORD: "changeme" #"elastic123!@#"
+    
+    networks:
+      - elk
+
+
+  # logstash 설정 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  logstash:
+    container_name: logstash
+    
+    #등록된 이미지를 지정하여 빌드시
+    image: docker.elastic.co/logstash/logstash:${ELK_VERSION?7.6.2}
+    #Docker파일을 통해 빌드시
+    #build:
+    #  context: logstash/
+    #  args:
+    #    ELK_VERSION: $ELK_VERSION
+        
+    ports:
+      - "5044:5044"       #filebeat 사용시 수신포트
+      - "5000:5000/tcp"   #개별앱에서 log appender 사용시 tch 수신포트
+      - "5000:5000/udp"
+      - "9600:9600"
+      
+    volumes:
+      - type: bind
+        source: ./logstash/config/logstash.yml
+        target: /usr/share/logstash/config/logstash.yml
+        read_only: true
+      - type: bind
+        source: ./logstash/pipeline
+        target: /usr/share/logstash/pipeline
+        read_only: true
+
+    #environment:
+    #  LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    
+    networks:
+      - elk
+    
+    depends_on:
+      - elasticsearch  #elasticsearch 기동이후에 기동하라는 뜻
+
+
+
+  # kibana 설정 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  kibana:
+    container_name: kibana
+    
+    #등록된 이미지를 지정하여 빌드시 
+    image: docker.elastic.co/kibana/kibana:${ELK_VERSION?7.6.2}
+    #Docker파일을 통해 빌드시
+    #build:
+    #  context: kibana/
+    #  args:
+    #    ELK_VERSION: $ELK_VERSION
+        
+    volumes:
+      - type: bind
+        source: ./kibana/config/kibana.yml
+        target: /usr/share/kibana/config/kibana.yml
+        read_only: true
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch  #elasticsearch 기동이후에 기동하라는 뜻
+
+
+#docker네트워크 
+networks:
+  elk:
+    driver: bridge
+
+#docker볼륨 
+volumes:
+  esdata:
+  
+  
+  
