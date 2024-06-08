@@ -31,7 +31,7 @@ services:
 
     # Elastic search 계정정보
     environment: 
-      #ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
       discovery.type: single-node
       #xpack.security.enabled: true  #elasticsearch.yml에 이미설정해 놓았기 때문에 주석처리
       #xpack.security.transport.ssl.enabled: true  #elasticsearch.yml에 이미 설정해 놓았기 때문에 주석처리
