@@ -41,6 +41,7 @@ services:
     networks:
       - elk
 
+    restart: always   #OS재시작시 항상 재시작 되도록
 
   # logstash 설정 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   logstash:
@@ -79,7 +80,7 @@ services:
     depends_on:
       - elasticsearch  #elasticsearch 기동이후에 기동하라는 뜻
 
-
+    restart: always   #OS재시작시 항상 재시작 되도록
 
   # kibana 설정 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   kibana:
@@ -104,7 +105,8 @@ services:
       - elk
     depends_on:
       - elasticsearch  #elasticsearch 기동이후에 기동하라는 뜻
-
+    
+    restart: always   #OS재시작시 항상 재시작 되도록
 
 #docker네트워크 
 networks:
