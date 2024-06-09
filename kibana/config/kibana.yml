@@ -5,7 +5,7 @@
 server.name: kibana
 server.host: 0.0.0.0
 elasticsearch.hosts: [ "http://elasticsearch:9200" ]
-monitoring.ui.container.elasticsearch.enabled: true  #디폴트 fasle. true로 하니 메모리를 너무 많이 잡아 먹더라.
+monitoring.ui.container.elasticsearch.enabled: true  #디폴트 fasle. Elasticsearch 노드가 컨테이너화된 환경에서 실행되는 경우인 경우 true
 
 ## X-Pack security credentials
 #
